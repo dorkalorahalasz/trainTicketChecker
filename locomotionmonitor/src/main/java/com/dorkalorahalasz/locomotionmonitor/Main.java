@@ -11,9 +11,20 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@SpringBootApplication
+@PropertySources({
+        @PropertySource("classpath:application-dev.properties"),
+        @PropertySource("classpath:application-user.properties")
+})
 public class Main {
 
     private static Hashtable<String, Integer> monthMapping = new Hashtable<String, Integer>() {
@@ -33,34 +44,42 @@ public class Main {
         }
     };
 
-    // TODO add config
-
     // main page url
-    private static String targetUrl = "https://jegy.mav.hu/";
+    private static String targetUrl;
     // the whole name of the start station
-    private static String startStation = "Győr";
+    private static String startStation;
     // zthe whole name of the end station
-    private static String endStation = "Zürich HB";
+    private static String endStation;
     // the year of your planned journey
-    private static int targetYear = 2024;
+    private static int targetYear;
     // the month of your planned journey (January = 1)
-    private static int targetMonth = 8;
+    private static int targetMonth;
     // the day of your planned journey
-    private static int targetDay = 25;
+    private static int targetDay;
     // the path to your chromedriver.exe
-    private static String chromedriver = "C:\\Users\\halas\\.vscode\\trainTicketChecker\\trainTicketChecker\\locomotionmonitor\\resources\\chrome-driver\\chromedriver-122.exe";
+    private static String chromedriver;
     // headless mode on?
-    private static boolean isHeadless = false;
+    private static boolean isHeadless;
 
     public static void main(String[] args) {
 
         WebDriver driver = null;
+
+        // Set the active profils to "dev" and "user"
+        System.setProperty("spring.profiles.active", "dev,user");
+
+        // Start SpringBoot
+        SpringApplication.run(Main.class, args);
+
         try {
             // create custom WebDriver
+            String currentDirectory = System.getProperty("user.dir");
+            System.out.println("Aktuelles Verzeichnis: " + currentDirectory);
             driver = prepareDriver();
             log.info("You searching for tickets from " + startStation + " to " + endStation + " on the "
                     + targetDay + "." + targetMonth + "." + targetYear);
             log.info("Starting to find tickets...");
+            System.exit(-1);
             // do the search
             boolean success = findTickets(driver);
             // report the results
@@ -238,4 +257,46 @@ public class Main {
 
         return driver;
     }
+
+    // TODO empty checks
+    @Value("${targetUrl}")
+    public void setTargetUrl(String targetUrl) {
+        Main.targetUrl = targetUrl;
+    }
+
+    @Value("${startStation}")
+    public void setStartStation(String startStation) {
+        Main.startStation = startStation;
+    }
+
+    @Value("${endStation}")
+    public void setEndStation(String endStation) {
+        Main.endStation = endStation;
+    }
+
+    @Value("${targetYear}")
+    public void setTargetYear(int targetYear) {
+        Main.targetYear = targetYear;
+    }
+
+    @Value("${targetMonth}")
+    public void setTargetMonth(int targetMonth) {
+        Main.targetMonth = targetMonth;
+    }
+
+    @Value("${targetDay}")
+    public void setTargetDay(int targetDay) {
+        Main.targetDay = targetDay;
+    }
+
+    @Value("${chromedriver}")
+    public void setChromedriver(String chromedriver) {
+        Main.chromedriver = chromedriver;
+    }
+
+    @Value("${isHeadless}")
+    public void setHeadless(boolean isHeadless) {
+        Main.isHeadless = isHeadless;
+    }
+
 }

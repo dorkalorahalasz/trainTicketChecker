@@ -79,6 +79,7 @@ public class Main {
             log.info("You searching for tickets from " + startStation + " to " + endStation + " on the "
                     + targetDay + "." + targetMonth + "." + targetYear);
             log.info("Starting to find tickets...");
+            driver.close();
             System.exit(-1);
             // do the search
             boolean success = findTickets(driver);
@@ -258,45 +259,92 @@ public class Main {
         return driver;
     }
 
-    // TODO empty checks
     @Value("${targetUrl}")
-    public void setTargetUrl(String targetUrl) {
+    public void setTargetUrl(String targetUrl) throws Exception {
+        if (targetUrl == null || targetUrl.trim().equals("")) {
+            throw new Exception("targetUrl is missing! Please check application-dev.properties");
+        }
         Main.targetUrl = targetUrl;
     }
 
     @Value("${startStation}")
-    public void setStartStation(String startStation) {
+    public void setStartStation(String startStation) throws Exception {
+        if (startStation == null || startStation.trim().equals("")) {
+            throw new Exception("startStation is missing! Please check application-user.properties");
+        }
         Main.startStation = startStation;
     }
 
     @Value("${endStation}")
-    public void setEndStation(String endStation) {
+    public void setEndStation(String endStation) throws Exception {
+        if (endStation == null || endStation.trim().equals("")) {
+            throw new Exception("endStation is missing! Please check application-user.properties");
+        }
         Main.endStation = endStation;
     }
 
     @Value("${targetYear}")
-    public void setTargetYear(int targetYear) {
-        Main.targetYear = targetYear;
+    public void setTargetYear(String targetYear) throws Exception {
+        if (targetYear == null || targetYear.trim().equals("")) {
+            throw new Exception("targetYear is missing! Please check application-user.properties");
+        }
+        if (!targetYear.matches("\\d{4}")) {
+            throw new Exception("targetYear is invalid! Please check application-user.properties");
+        }
+        Main.targetYear = Integer.valueOf(targetYear);
     }
 
     @Value("${targetMonth}")
-    public void setTargetMonth(int targetMonth) {
-        Main.targetMonth = targetMonth;
+    public void setTargetMonth(String targetMonth) throws Exception {
+        if (targetMonth == null || targetMonth.trim().equals("")) {
+            throw new Exception("targetMonth is missing! Please check application-user.properties");
+        }
+        int intVal = 0;
+        try {
+            intVal = Integer.valueOf(targetMonth);
+        } catch (NumberFormatException e) {
+            throw new Exception("targetMonth is invalid! Please check application-user.properties");
+        }
+        if (intVal < 1 || intVal > 12) {
+            throw new Exception("targetMonth is invalid! Please check application-user.properties");
+        }
+        Main.targetMonth = intVal;
     }
 
     @Value("${targetDay}")
-    public void setTargetDay(int targetDay) {
-        Main.targetDay = targetDay;
+    public void setTargetDay(String targetDay) throws Exception {
+        if (targetDay == null || targetDay.trim().equals("")) {
+            throw new Exception("targetDay is missing! Please check application-user.properties");
+        }
+        int intVal = 0;
+        try {
+            intVal = Integer.valueOf(targetDay);
+        } catch (NumberFormatException e) {
+            throw new Exception("targetDay is invalid! Please check application-user.properties");
+        }
+        if (intVal < 1 || intVal > 31) {
+            throw new Exception("targetDay is invalid! Please check application-user.properties");
+        }
+        Main.targetDay = intVal;
     }
 
     @Value("${chromedriver}")
-    public void setChromedriver(String chromedriver) {
+    public void setChromedriver(String chromedriver) throws Exception {
+        if (chromedriver == null || chromedriver.trim().equals("")) {
+            throw new Exception("chromedriver is missing! Please check application-user.properties");
+        }
         Main.chromedriver = chromedriver;
     }
 
     @Value("${isHeadless}")
-    public void setHeadless(boolean isHeadless) {
-        Main.isHeadless = isHeadless;
+    public void setHeadless(String isHeadless) {
+        boolean boolVal = true;
+        if (isHeadless == null || isHeadless.trim().equals("")) {
+            log.warn("isHeadless is invalid. Using true as default. Please check application-dev.properties");
+        } else if (isHeadless.trim().toLowerCase().equals("false")) {
+            boolVal = false;
+        }
+        Main.isHeadless = boolVal;
     }
 
 }

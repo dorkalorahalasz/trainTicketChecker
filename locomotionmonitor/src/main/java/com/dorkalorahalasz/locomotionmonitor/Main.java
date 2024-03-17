@@ -89,7 +89,6 @@ public class Main {
             } else {
                 log.warn("You have to wait for your tickets to be available");
             }
-            // TODO error handling with custom errors
         } catch (Exception e) {
             log.error("Something went wrong in main " + e);
         } finally {
@@ -99,7 +98,7 @@ public class Main {
 
     }
 
-    private static boolean findTickets(WebDriver driver) {
+    private static boolean findTickets(WebDriver driver) throws Exception {
 
         // navigate to the target page
         try {
@@ -112,13 +111,9 @@ public class Main {
             // fill the search fields
 
             // Start station
-            if (fillStationInput(driver, "//input[@id='startStation-input']", startStation)) {
-                // End station
-                if (fillStationInput(driver, "//input[@id='endStation-input']", endStation)) {
-                } else
-                    return false; // TODO custom err
-            } else
-                return false; // TODO custom err
+            fillStationInput(driver, "//input[@id='startStation-input']", startStation);
+            // End station
+            fillStationInput(driver, "//input[@id='endStation-input']", endStation);
 
             // choose the date
             driver.findElements(By.xpath("//button[@class='datepicker-toggler-button']")).get(0).click();
@@ -166,12 +161,11 @@ public class Main {
                 return true;
             }
         } catch (Exception e) {
-            log.error("Something went wrong " + e);
-            return false; // TODO custom err
+            throw new Exception("Error in findTickets: " + e);
         }
     }
 
-    private static boolean fillStationInput(WebDriver driver, String xpath, String stationName) {
+    private static void fillStationInput(WebDriver driver, String xpath, String stationName) throws Exception {
         try {
             WebElement input = driver.findElement(By.xpath(xpath));
             input.click();
@@ -182,14 +176,12 @@ public class Main {
             sleep(1000);
             input.sendKeys(Keys.RETURN);
             sleep(3000);
-            return true;
         } catch (Exception e) {
-            log.error("Error when setting station " + stationName + " " + e);
-            return false;
+            throw new Exception("Error when setting station " + stationName + " " + e);
         }
     }
 
-    private static void acknowledgeCookies(WebDriver driver) {
+    private static void acknowledgeCookies(WebDriver driver) throws Exception {
         try {
             driver.findElement(By.xpath(
                     "//div[@class[contains(., 'cookie-container ng-star-inserted')]]//button[@class[contains(., 'ng-star-inserted')]]"))
@@ -199,11 +191,11 @@ public class Main {
         } catch (NoSuchElementException ex) {
             log.debug("No cookie popup shown");
         } catch (Exception e) {
-            log.error("Error when closing cookie popup:" + e);
+            throw new Exception("Error when closing cookie popup: " + e);
         }
     }
 
-    private static void closePopupIfPresent(WebDriver driver) {
+    private static void closePopupIfPresent(WebDriver driver) throws Exception {
         try {
             driver.findElement(By.xpath("//button[@class[contains(., 'test-helper-confirm-yes')]]")).click();
             log.debug("Popup closed");
@@ -211,7 +203,7 @@ public class Main {
         } catch (NoSuchElementException ex) {
             log.debug("No popup shown");
         } catch (Exception e) {
-            log.error("Error when closing popup:" + e);
+            throw new Exception("Error when closing popup: " + e);
         }
     }
 
@@ -219,7 +211,6 @@ public class Main {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 

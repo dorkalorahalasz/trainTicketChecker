@@ -11,6 +11,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -60,8 +61,12 @@ public class Main {
     private static String chromedriver;
     // headless mode on?
     private static boolean isHeadless;
+    @Autowired
+    private static XpathConfig xpathConfig;
 
     public static void main(String[] args) {
+
+        log.info("xpath:" + xpathConfig.xpath);
 
         WebDriver driver = null;
 

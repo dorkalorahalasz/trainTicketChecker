@@ -11,10 +11,10 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 
@@ -49,7 +49,7 @@ public class Main {
     private static String targetUrl;
     // the whole name of the start station
     private static String startStation;
-    // zthe whole name of the end station
+    // the whole name of the end station
     private static String endStation;
     // the year of your planned journey
     private static int targetYear;
@@ -61,12 +61,10 @@ public class Main {
     private static String chromedriver;
     // headless mode on?
     private static boolean isHeadless;
-    @Autowired
+    // xpaths
     private static XpathConfig xpathConfig;
 
     public static void main(String[] args) {
-
-        log.info("xpath:" + xpathConfig.xpath);
 
         WebDriver driver = null;
 
@@ -74,7 +72,9 @@ public class Main {
         System.setProperty("spring.profiles.active", "dev,user");
 
         // Start SpringBoot
-        SpringApplication.run(Main.class, args);
+        ApplicationContext context = SpringApplication.run(Main.class, args);
+        xpathConfig = context.getBean(XpathConfig.class);
+        log.info("xpath:" + xpathConfig.xpath);
 
         try {
             // create custom WebDriver
@@ -84,8 +84,6 @@ public class Main {
             log.info("You searching for tickets from " + startStation + " to " + endStation + " on the "
                     + targetDay + "." + targetMonth + "." + targetYear);
             log.info("Starting to find tickets...");
-            driver.close();
-            System.exit(-1);
             // do the search
             boolean success = findTickets(driver);
             // report the results
@@ -98,7 +96,9 @@ public class Main {
             log.error("Something went wrong in main " + e);
         } finally {
             // close the driver anyways
-            driver.close();
+            if (driver != null) {
+                driver.close();
+            }
         }
 
     }

@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 })
 public class Main {
 
-    private static Hashtable<String, Integer> monthMapping = new Hashtable<String, Integer>() {
+    private static final Hashtable<String, Integer> monthMapping = new Hashtable<String, Integer>() {
         {
             put("January", 1);
             put("February", 2);
@@ -61,25 +61,23 @@ public class Main {
     private static String chromedriver;
     // headless mode on?
     private static boolean isHeadless;
-    // xpaths
+    // config for xpaths
     private static XpathConfig xpathConfig;
 
     public static void main(String[] args) {
 
         WebDriver driver = null;
 
-        // Set the active profils to "dev" and "user"
+        // Set the active profils to "dev" and "user" to use both config files
         System.setProperty("spring.profiles.active", "dev,user");
 
         // Start SpringBoot
         ApplicationContext context = SpringApplication.run(Main.class, args);
         xpathConfig = context.getBean(XpathConfig.class);
-        log.info("xpath:" + xpathConfig.xpath);
+        log.info("xpath:" + xpathConfig.xpathStartStationInput);
 
         try {
             // create custom WebDriver
-            String currentDirectory = System.getProperty("user.dir");
-            System.out.println("Aktuelles Verzeichnis: " + currentDirectory);
             driver = prepareDriver();
             log.info("You searching for tickets from " + startStation + " to " + endStation + " on the "
                     + targetDay + "." + targetMonth + "." + targetYear);
@@ -116,12 +114,12 @@ public class Main {
             // fill the search fields
 
             // Start station
-            fillStationInput(driver, "//input[@id='startStation-input']", startStation);
+            fillStationInput(driver, xpathConfig.xpathStartStationInput, startStation);
             // End station
-            fillStationInput(driver, "//input[@id='endStation-input']", endStation);
+            fillStationInput(driver, xpathConfig.xpathEndStationInput, endStation);
 
             // choose the date
-            driver.findElements(By.xpath("//button[@class='datepicker-toggler-button']")).get(0).click();
+            driver.findElements(By.xpath(xpathConfig.xpathDatePickerButton)).get(0).click();
             sleep(3000);
 
             // and now something tricky to solve the text based month navigation
@@ -131,7 +129,7 @@ public class Main {
 
             // System.out.println("Try to set the " + targetMonth +". month");
             while (true) {
-                currentMonthName = driver.findElement(By.xpath("//button[@class='prevMonth']/following-sibling::h2"))
+                currentMonthName = driver.findElement(By.xpath(xpathConfig.xpathCurrMonth))
                         .getText();
                 // remove the year
                 currentMonthName = currentMonthName.substring(0, currentMonthName.indexOf(" "));
@@ -148,13 +146,14 @@ public class Main {
                 // at least true, until i have the year logic implemented
                 else {
                     // System.out.println("We have to move to the next month");
-                    driver.findElement(By.xpath("//button[@class='nextMonth']")).click();
+                    driver.findElement(By.xpath(xpathConfig.xpathNextMonthButton)).click();
                     sleep(1000);
                 }
             }
 
             // and now pick the day
-            String daySelectorXpath = "//button[@class='dateButton' and contains(text(),'" + targetDay + "')]";
+            //String daySelectorXpath = "//button[@class='dateButton' and contains(text(),'" + targetDay + "')]";
+            String daySelectorXpath = xpathConfig.xpathDayButton.replace("{TARGETDAY}", String.valueOf(targetDay));
 
             WebElement button = driver.findElement(By.xpath(daySelectorXpath));
             // check that the date is disabled
@@ -188,9 +187,7 @@ public class Main {
 
     private static void acknowledgeCookies(WebDriver driver) throws Exception {
         try {
-            driver.findElement(By.xpath(
-                    "//div[@class[contains(., 'cookie-container ng-star-inserted')]]//button[@class[contains(., 'ng-star-inserted')]]"))
-                    .click();
+            driver.findElement(By.xpath(xpathConfig.xpathAcceptCookiesButton)).click();
             log.debug("Cookie popup closed");
             sleep(5000);
         } catch (NoSuchElementException ex) {
@@ -202,7 +199,7 @@ public class Main {
 
     private static void closePopupIfPresent(WebDriver driver) throws Exception {
         try {
-            driver.findElement(By.xpath("//button[@class[contains(., 'test-helper-confirm-yes')]]")).click();
+            driver.findElement(By.xpath(xpathConfig.xpathAcceptPopupButton)).click();
             log.debug("Popup closed");
             sleep(5000);
         } catch (NoSuchElementException ex) {
@@ -220,7 +217,7 @@ public class Main {
     }
 
     static protected WebDriver prepareDriver() {
-        WebDriver driver = null;
+        WebDriver driver;
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
         System.setProperty("webdriver.chrome.silentOutput", "true");
